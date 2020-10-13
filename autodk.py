@@ -27,11 +27,38 @@ def operate_dk(driver):
     elem.send_keys("zdx19981006")
     try:
         driver.find_element_by_id("login-submit").click()
-    except Exception,e:
         
+    except Exception,e:
+        print("")
     
     url = "https://ehall.jlu.edu.cn/infoplus/form/YJSMRDK/start"
     driver.get(url)
+    time.sleep(5)
+    elem = driver.find_element_by_id("V1_CTRL40")
+    elem.clear()
+    elem.send_keys(u"电子信息")
+    elem = driver.find_element_by_id("V1_CTRL41")
+    elem.send_keys("2020")
+    elem = driver.find_element_by_id("V1_CTRL42")
+    elem.send_keys(u"中心校区")
+    elem = driver.find_element_by_id("V1_CTRL7")
+    elem.send_keys(u"文苑6公寓")
+    elem = driver.find_element_by_id("V1_CTRL8")
+    elem.clear()
+    elem.send_keys("417")
+    elem = driver.find_element_by_id("V1_CTRL44").click()
+    elem = driver.find_element_by_id("V1_CTRL28").click()
+    elem = driver.find_element_by_id("V1_CTRL19").click()
+    elem = driver.find_element_by_id("V1_CTRL23").click()
+    
+    try:
+        driver.find_element_by_class_name('command_button_content').click()
+        time.sleep(5)
+        driver.find_element_by_css_selector('.dialog_button.default.fr').click()
+        time.sleep(5)
+        wxpost("打卡成功")
+    except Exception,e:
+        wxpost("打卡失败")
     
     return
    
