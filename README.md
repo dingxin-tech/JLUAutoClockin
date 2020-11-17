@@ -1,5 +1,6 @@
 # JLUAutoClockin
 吉林大学日常健康自动打卡
+v2.0
 
 本程序推荐运行于Linux中，使用crontab定时打卡
 依赖环境如下：
