@@ -2,6 +2,7 @@
 from selenium import webdriver
 import time
 import pandas as pd
+import numpy as np
 import datetime
 
 def openChrome():
@@ -11,11 +12,11 @@ def openChrome():
     options.add_argument('--disable-gpu') # 谷歌文档提到需要加上这个属性来规避bug
     options.add_argument('--hide-scrollbars') # 隐藏滚动条, 应对一些特殊页面
     options.add_argument('blink-settings=imagesEnabled=false') # 不加载图片, 提升速度
-    options.add_argument('--headless') # 浏览器不提供可视化页面.linux下如果系统不支持可视化不加这条会启动失败
+    #options.add_argument('--headless') # 浏览器不提供可视化页面.linux下如果系统不支持可视化不加这条会启动失败
     options.add_argument('disable-infobars')
-    driver = webdriver.Chrome(options=options,executable_path='/chromedriver')
+    driver = webdriver.Chrome(options=options,executable_path='D:/chromedriver')
+    #driver = webdriver.Chrome(options=options,executable_path='C:\Program Files (x86)\Google\Chrome\Application/chromedriver')
     driver.set_page_load_timeout(15)
-    driver.implicitly_wait(20)
     return driver
 
 def Clock_in(name,pw,zy,nj,gy,qs,SC_KEY):
@@ -23,13 +24,16 @@ def Clock_in(name,pw,zy,nj,gy,qs,SC_KEY):
         driver = openChrome()
         url = "https://ehall.jlu.edu.cn/infoplus/form/YJSMRDK/start"
         driver.get(url)
+        driver.implicitly_wait(20)
         elem = driver.find_element_by_id("username")
         elem.send_keys(name)
         elem = driver.find_element_by_id("password")
         elem.send_keys(pw)
         driver.find_element_by_id("login-submit").click()
+        driver.implicitly_wait(20)
         elem = driver.find_element_by_id("V1_CTRL40")
         elem.clear()
+        #print("1")
         elem.send_keys(zy.decode("utf-8"))  #专业
         elem = driver.find_element_by_id("V1_CTRL41")
         elem.send_keys(nj) #年级
@@ -40,15 +44,22 @@ def Clock_in(name,pw,zy,nj,gy,qs,SC_KEY):
         elem = driver.find_element_by_id("V1_CTRL8")
         elem.clear()
         elem.send_keys(qs) #寝室
-        driver.find_element_by_id("V1_CTRL44").click() #硕士
-        driver.find_element_by_id("V1_CTRL28").click() #打卡
+        try:
+            driver.find_element_by_id("V1_CTRL44").click() #硕士
+        except:
+            pass
+        driver.find_element_by_id("V1_CTRL28").click() #早打卡
         time.sleep(3)
-        driver.find_element_by_class_name('command_button_content').click()  #提交
-        driver.find_element_by_css_selector('.dialog_button.default.fr').click()  #是
+        try:
+            driver.find_element_by_xpath('/html/body/div[4]/form/div/div[3]/div[3]/div[2]/ul/li/a').click()
+        except:
+            driver.find_element_by_xpath('/html/body/div[7]/ul/li/a').click()
+        driver.implicitly_wait(20)
+        driver.find_element_by_css_selector('.dialog_button.default.fr').click()
         time.sleep(5)
-        driver.find_element_by_xpath("// * / div[2] / button").click()  #是
+        driver.find_element_by_xpath("// * / div[2] / button").click()
         time.sleep(5)
-        message=driver.find_element_by_xpath("// *[ @ id = \"title_content\"] / nobr").text
+        message=driver.find_element_by_xpath("/ html / body / div[4] / form / div / div[2] / div / div[1] / span").text
         if(message=='研究生每日打卡:申请填写(已完成)'.decode("utf-8") or message=="研究生每日打卡:申请填写(Completed)".decode("utf-8")):
             driver.close()
             return True
@@ -72,7 +83,7 @@ def wxpost(content,SC_KEY):
 
 
 if __name__ == '__main__':
-    data = pd.read_csv("/document.csv")  #从.csv文件中读取信息
+    data = pd.read_csv("/home/ubuntu/JLU/document.csv")
     print("自动打卡")
     for index, row in data.iterrows():
         name, secret = row['name'], row['secret']
@@ -83,9 +94,9 @@ if __name__ == '__main__':
         while(not Clock_in(name,secret,subject,years,document,doc_number,SC_KEY)):
             count=count+1
             print("打卡失败")
-            time.sleep(30)
+            time.sleep(20)
             if(count==20):
-                wxpost("打卡失败",SC_KEY)
+                wxpost("打卡失败(如已提醒打卡成功，请忽略)",SC_KEY)
                 break
         if(count!=20):
             wxpost("打卡成功",SC_KEY)
